@@ -1,8 +1,6 @@
 #ifndef PID_H
 #define PID_H
 
-#include <vector>
-
 class PID {
   double previous_cte;
   double total_int;
