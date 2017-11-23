@@ -1,7 +1,13 @@
 #ifndef PID_H
 #define PID_H
 
+#include <vector>
+
 class PID {
+  double previous_cte;
+  double total_int;
+  bool is_initialized;
+  std::vector<double> previus_ctes;
 public:
   /*
   * Errors
@@ -41,6 +47,8 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  double GetAngle(double cte, double speed);
 };
 
 #endif /* PID_H */
