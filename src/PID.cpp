@@ -8,7 +8,7 @@ using namespace std;
 * TODO: Complete the PID class.
 */
 
-PID::PID() : previous_cte(0.0), p_error(0.0), d_error(0.0), i_error(0.0), dKp(0.02), dKi(1e-05), dKd(0.1), total_absolute_error(0.0) {}
+PID::PID() : previous_cte(0.0), p_error(0.0), d_error(0.0), i_error(0.0), dKp(0.02), dKi(5e-06), dKd(0.3), total_absolute_error(0.0) {}
 
 PID::~PID() {}
 
@@ -59,7 +59,7 @@ void PID::ResetError() {
 }
 
 void PID::PrintParamValues() {
-  cout << "Kp: " << Kp << " Ki: " << Ki << " Kd: " << Kd << " dKp: " << dKp << " dKi" << dKi << " dKd: " << dKd << "\n";
+  cout << "Kp: " << Kp << " Ki: " << Ki << " Kd: " << Kd << " dKp: " << dKp << " dKi: " << dKi << " dKd: " << dKd << "\n";
 }
 
 

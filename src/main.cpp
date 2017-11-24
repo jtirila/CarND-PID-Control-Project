@@ -35,7 +35,7 @@ int main()
 
   PID pid;
   // Initialize the pid variable.
-  pid.Init(0.10, 0.00004, 4.0);
+  pid.Init(0.0954688, 1.99661e-0, 4.0);
 
   clock_t begin_time = clock();
   int twiddle_iteration_ind = -1;
@@ -44,7 +44,7 @@ int main()
   double this_twiddle_iteration_time = -1.0;
   double best_total_error;
   auto twiddle_start_time = std::chrono::high_resolution_clock::now();
-  double tolerance = 0.001;
+  double tolerance = 0.0001;
   std::cout << "Begin time: " << float(begin_time) << "\n";
   std::cout << "Clocks per sec: " << float(CLOCKS_PER_SEC) << "\n";
   h.onMessage([&pid, &this_twiddle_iteration_time, &twiddle_start_time,
