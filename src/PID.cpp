@@ -26,6 +26,7 @@ void PID::UpdateError(double cte, double speed) {
 }
 
 double PID::TotalError() {
+  return i_error;
 }
 
 double PID::GetAngle(double cte, double speed) {

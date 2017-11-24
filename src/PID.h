@@ -9,20 +9,23 @@ private:
   * Update the PID error variables given cross track error.
   */
   void UpdateError(double cte, double speed);
-public:
+
   /*
   * Errors
   */
   double p_error;
-  double i_error;
   double d_error;
+  double i_error;
 
   /*
   * Coefficients
-  */ 
+  */
+  // Kek
   double Kp;
   double Ki;
   double Kd;
+public:
+
 
   /*
   * Constructor

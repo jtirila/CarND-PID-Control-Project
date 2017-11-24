@@ -38,13 +38,15 @@ int main()
   pid.Init(0.10, 0.00004, 4.0);
 
   clock_t begin_time = clock();
-  auto t_start = std::chrono::high_resolution_clock::now();
+  double this_twiddle_iteration_time = -1.0;
+  auto twiddle_start_time = std::chrono::high_resolution_clock::now();
   std::cout << "Begin time: " << float(begin_time) << "\n";
   std::cout << "Clocks per sec: " << float(CLOCKS_PER_SEC) << "\n";
-  h.onMessage([&pid, &begin_time, &t_start](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&pid, &this_twiddle_iteration_time, &twiddle_start_time](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
+
     if (length && length > 2 && data[0] == '4' && data[1] == '2')
     {
       auto s = hasData(std::string(data).substr(0, length));
@@ -53,14 +55,23 @@ int main()
         auto j = json::parse(s);
         std::string event = j[0].get<std::string>();
         if (event == "telemetry") {
+
+          // Some time bookkeeping
+          if(this_twiddle_iteration_time < -0.5){
+            twiddle_start_time = std::chrono::high_resolution_clock::now();
+            this_twiddle_iteration_time = -0.0;
+          } else {
+            auto t_now = std::chrono::high_resolution_clock::now();
+            this_twiddle_iteration_time = std::chrono::duration<double, std::milli>(t_now - twiddle_start_time).count() / 1000.0;
+
+          }
+
           // j[1] is the data JSON object
           double cte = std::stod(j[1]["cte"].get<std::string>());
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value = pid.GetAngle(cte, speed);
-          auto t_end = std::chrono::high_resolution_clock::now();
-          float time_from_begin = std::chrono::duration<double, std::milli>(t_end-t_start).count() / 1000.0;
-          std::cout << "Time from begin: " << time_from_begin << "\n";
+          std::cout << "Time from twiddle begin: " << this_twiddle_iteration_time << "\n";
           std::cout << "CTE: " << cte << " Speed: " << speed << " Steering Value: " << steer_value << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;
