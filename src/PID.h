@@ -3,12 +3,6 @@
 
 class PID {
   double previous_cte;
-private:
-
-  /*
-  * Update the PID error variables given cross track error.
-  */
-  void UpdateError(double cte, double speed);
 
   /*
   * Errors
@@ -24,6 +18,19 @@ private:
   double Kp;
   double Ki;
   double Kd;
+
+  double dKp;
+  double dKi;
+  double dKd;
+
+private:
+
+  /*
+  * Update the PID error variables given cross track error.
+  */
+  void UpdateError(double cte, double speed);
+  void ChangeParam(int change_type, int paramIdx);
+
 public:
 
 
@@ -42,11 +49,16 @@ public:
   */
   void Init(double Kp, double Ki, double Kd);
 
+  double TotalD() const;
+
 
   /*
   * Calculate the total PID error.
   */
-  double TotalError();
+  double TotalError() const;
+
+  void IncreaseParam(int paramIdx);
+  void DecreaseParam(int paramIdx);
 
   double GetAngle(double cte, double speed);
 };
