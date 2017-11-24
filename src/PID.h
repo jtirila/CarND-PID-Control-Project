@@ -10,6 +10,7 @@ class PID {
   double p_error;
   double d_error;
   double i_error;
+  double total_absolute_error;
 
   /*
   * Coefficients
@@ -29,7 +30,7 @@ private:
   * Update the PID error variables given cross track error.
   */
   void UpdateError(double cte, double speed);
-  void ChangeParam(int change_type, int paramIdx);
+  void ChangeParamDiff(int changeType, int paramIdx);
 
 public:
 
@@ -57,8 +58,11 @@ public:
   */
   double TotalError() const;
 
-  void IncreaseParam(int paramIdx);
-  void DecreaseParam(int paramIdx);
+  void ChangeParam(int change_type, int paramIdx);
+  void ResetError();
+  void AccelerateParamTrials(int paramIdx);
+  void DecelerateParamTrials(int paramIdx);
+  void PrintParamValues();
 
   double GetAngle(double cte, double speed);
 };
