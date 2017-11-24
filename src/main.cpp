@@ -59,7 +59,8 @@ int main()
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value = pid.GetAngle(cte, speed);
           auto t_end = std::chrono::high_resolution_clock::now();
-          std::cout << "Time from begin: " << float(std::chrono::duration<double, std::milli>(t_end-t_start).count()) / 1000.0 << "\n";
+          float time_from_begin = std::chrono::duration<double, std::milli>(t_end-t_start).count() / 1000.0;
+          std::cout << "Time from begin: " << time_from_begin << "\n";
           std::cout << "CTE: " << cte << " Speed: " << speed << " Steering Value: " << steer_value << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;

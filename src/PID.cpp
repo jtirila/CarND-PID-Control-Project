@@ -7,7 +7,7 @@ using namespace std;
 * TODO: Complete the PID class.
 */
 
-PID::PID() : total_int(0.0), previous_cte(0.0) {}
+PID::PID() : previous_cte(0.0), p_error(0.0), d_error(0.0), i_error(0.0) {}
 
 PID::~PID() {}
 
@@ -17,20 +17,20 @@ void PID::Init(double Kp, double Ki, double Kd) {
   this->Kd = Kd;
 }
 
-void PID::UpdateError(double cte) {
+void PID::UpdateError(double cte, double speed) {
+  p_error = cte;
+  d_error = cte - previous_cte;
+  i_error += cte * speed;
+  previous_cte = cte;
+  cout << "p_error: " << p_error << " d_error: " << d_error << " i_error: " << i_error << "\n";
 }
 
 double PID::TotalError() {
 }
 
 double PID::GetAngle(double cte, double speed) {
-  double y_diff;
-  y_diff = (cte - previous_cte);
-  previous_cte = cte;
-  cout << "y_diff: " << y_diff << " total_int: " << total_int << "\n";
-
-  total_int += cte * speed;
-
-  return -Kp * cte - Kd * y_diff - Ki * total_int;
+  cout << "in get_angle: cte: " << cte << "\n";
+  UpdateError(cte, speed);
+  return -Kp * p_error -Kd * d_error -Ki * i_error;
 }
 

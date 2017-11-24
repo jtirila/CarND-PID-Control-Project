@@ -3,7 +3,12 @@
 
 class PID {
   double previous_cte;
-  double total_int;
+private:
+
+  /*
+  * Update the PID error variables given cross track error.
+  */
+  void UpdateError(double cte, double speed);
 public:
   /*
   * Errors
@@ -34,10 +39,6 @@ public:
   */
   void Init(double Kp, double Ki, double Kd);
 
-  /*
-  * Update the PID error variables given cross track error.
-  */
-  void UpdateError(double cte);
 
   /*
   * Calculate the total PID error.
