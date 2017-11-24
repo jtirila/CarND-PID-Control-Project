@@ -1,5 +1,6 @@
 #include <uWS/uWS.h>
 #include <iostream>
+#include <chrono>
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
@@ -36,7 +37,11 @@ int main()
   // Initialize the pid variable.
   pid.Init(0.10, 0.00004, 4.0);
 
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  clock_t begin_time = clock();
+  auto t_start = std::chrono::high_resolution_clock::now();
+  std::cout << "Begin time: " << float(begin_time) << "\n";
+  std::cout << "Clocks per sec: " << float(CLOCKS_PER_SEC) << "\n";
+  h.onMessage([&pid, &begin_time, &t_start](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -44,6 +49,7 @@ int main()
     {
       auto s = hasData(std::string(data).substr(0, length));
       if (s != "") {
+
         auto j = json::parse(s);
         std::string event = j[0].get<std::string>();
         if (event == "telemetry") {
@@ -52,6 +58,8 @@ int main()
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value = pid.GetAngle(cte, speed);
+          auto t_end = std::chrono::high_resolution_clock::now();
+          std::cout << "Time from begin: " << float(std::chrono::duration<double, std::milli>(t_end-t_start).count()) / 1000.0 << "\n";
           std::cout << "CTE: " << cte << " Speed: " << speed << " Steering Value: " << steer_value << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;
