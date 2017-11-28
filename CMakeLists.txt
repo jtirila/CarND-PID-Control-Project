@@ -26,3 +26,4 @@ add_executable(pid ${sources})
 add_executable(pid_learn ${learn_sources})
 
 target_link_libraries(pid z ssl uv uWS)
+target_link_libraries(pid_learn z ssl uv uWS)
