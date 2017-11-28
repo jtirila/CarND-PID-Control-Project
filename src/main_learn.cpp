@@ -38,8 +38,18 @@ int main()
   pid.Init(0.0954688, 1.99661e-05, 4.0);
 
   clock_t begin_time = clock();
+  int twiddle_iteration_ind = -1;
+  int param_to_modify = 0;
+  int increase_decrease_index = 0;
+  double this_twiddle_iteration_time = -1.0;
+  double best_total_error;
+  auto twiddle_start_time = std::chrono::high_resolution_clock::now();
+  double tolerance = 0.0001;
   std::cout << "Begin time: " << float(begin_time) << "\n";
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  std::cout << "Clocks per sec: " << float(CLOCKS_PER_SEC) << "\n";
+  h.onMessage([&pid, &this_twiddle_iteration_time, &twiddle_start_time,
+                  &tolerance, &twiddle_iteration_ind, &best_total_error, &increase_decrease_index,
+                  &param_to_modify](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -61,6 +71,63 @@ int main()
 
           // Check if we will start a new twiddle iteration
 
+          if(pid.TotalD() > tolerance) {
+            if (this_twiddle_iteration_time < -0.5) {
+              twiddle_start_time = std::chrono::high_resolution_clock::now();
+              this_twiddle_iteration_time = 0.0;
+
+
+              if (twiddle_iteration_ind == -1) {
+                // Do nothing
+              } else {
+                if (twiddle_iteration_ind > 0) {
+                  std::cout << "Total error: " << pid.TotalError() << " best error: " << best_total_error << "\n";
+                  if (pid.TotalError() < best_total_error) {
+                    std::cout << "Yes we were able to improve! Accelerating the changes for this parameter!\n";
+                    best_total_error = pid.TotalError();
+                    int previous_param_to_modify = (param_to_modify + 2) % 3;
+                    if(previous_param_to_modify < 0)
+                      previous_param_to_modify += 3;
+                    pid.AccelerateParamTrials(previous_param_to_modify);
+                    increase_decrease_index = 0;
+                  } else {
+                    std::cout << "Not able to improve.\n";
+                    int previous_param_to_modify = (param_to_modify +2) % 3;
+                    if (increase_decrease_index == 1) {
+                      std::cout << "That was the decrease iteration so resetting to previous value and moving on.\n";
+                      pid.ChangeParam(0, previous_param_to_modify);
+                      pid.DecelerateParamTrials(previous_param_to_modify);
+                      increase_decrease_index = 0;
+                    } else {
+                      std::cout
+                          << "That was the increase iteration so making a further attempt by decreasing the param value.\n";
+                      pid.ChangeParam(1, previous_param_to_modify);
+                      param_to_modify = previous_param_to_modify;
+                      increase_decrease_index = 1;
+                    }
+                  }
+                } else {
+                  best_total_error = pid.TotalError();
+                }
+                pid.ResetError();
+                pid.ChangeParam(increase_decrease_index, param_to_modify);
+                param_to_modify = (param_to_modify + 1) % 3;
+              }
+              twiddle_iteration_ind++;
+              std::cout << "starting new twiddle iteration (round " << twiddle_iteration_ind << "), new param values: \n";
+              pid.PrintParamValues();
+            } else if (this_twiddle_iteration_time > 57) {
+              this_twiddle_iteration_time = -1;
+            } else {
+              auto t_now = std::chrono::high_resolution_clock::now();
+              this_twiddle_iteration_time = std::chrono::duration<double, std::milli>(
+                  t_now - twiddle_start_time).count() / 1000.0;
+
+            }
+          } else {
+            std::cout << "The twiddle algorithm has converged, the final values are: \n";
+            pid.PrintParamValues();
+          }
 
           /*
            ********************************************************************************
@@ -73,7 +140,11 @@ int main()
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
 
+          if(this_twiddle_iteration_time >= 30 || pid.TotalD() >= tolerance){
+          }
           double steer_value = pid.GetAngle(cte, speed);
+
+          std::cout << "Time from twiddle begin: " << this_twiddle_iteration_time << "\n";
           std::cout << "CTE: " << cte << " Speed: " << speed << " Steering Value: " << steer_value << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;

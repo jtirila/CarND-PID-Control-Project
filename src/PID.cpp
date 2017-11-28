@@ -24,6 +24,7 @@ void PID::UpdateError(double cte, double speed) {
   i_error += cte * speed;
   previous_cte = cte;
   total_absolute_error += fabs(cte);
+  // DEBUG:
   // cout << "p_error: " << p_error << " d_error: " << d_error << " i_error: " << i_error << "\n";
 }
 
@@ -56,6 +57,7 @@ void PID::ChangeParam(int change_type, int paramIdx) {
 
 void PID::ResetError() {
   total_absolute_error = 0.0;
+  i_error = 0.0;
 }
 
 void PID::PrintParamValues() {
