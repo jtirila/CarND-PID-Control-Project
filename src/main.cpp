@@ -35,7 +35,7 @@ int main()
 
   PID pid;
   // Initialize the pid variable.
-  pid.Init(0.0954688, 1.99661e-05, 4.0);
+  pid.Init(0.168278, 2.49661e-05, 4.66);
 
   clock_t begin_time = clock();
   std::cout << "Begin time: " << float(begin_time) << "\n";

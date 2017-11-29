@@ -1,5 +1,7 @@
 # Self Driving Car Engineer Nanodegree Term2: PID Controller project 
 
+By **J-M Tirilä**.
+
 ## Basic Project Info
 
 The task in this project is to implement a [PID controller](https://en.wikipedia.org/wiki/PID_controller) in C++. The 
@@ -32,7 +34,10 @@ The dependencies and hints for setting up the environment can be found at the
 3. Compile: `cmake .. && make`
 4. Run it: `./pid`. 
 
-# Discussion
+Alternatively, if you want to run the online twiddle version of the algorithm, the last step can be replaced 
+with `./pid_learn`.
+
+# My Implementation 
 
 ## Introduction
 
@@ -99,10 +104,52 @@ of these terms.
 This section discusses some phenomena in the specific context of this project simulator and the track where the 
 controller is used. 
 
-##### Something on the Proportional Term 
-##### A Note on the Differential Term
+##### The Effect of the Proportional Term 
 
-##### A Note on the Integral Term
+The proportional term always adjust the steering angle to the right direction, but has the characteristic that the 
+corrections will overshoot the desired track because at the time when the steering angle is 
+set to zero, the vehicle is typically approaching the desired path at an angle 
+and hence overshoots the target. Only after this overshot is the course corrected towards the center again, 
+yet again overshooting to the other side. This is clearly manifested in the following video clip (click to see on YouTube): 
+
+[![D Control](https://img.youtube.com/vi/eY74W7dqnmM/0.jpg)](https://www.youtube.com/watch?v=eY74W7dqnmM)
+
+##### The Effect of the Differential Term
+
+The differential term will also capture _some_ aspects of correctibe behavior correctly. To be specific, when ther `CTE` 
+is changing into one direction or the other, the vehicle will steer into the opposite direction for a brief while.  
+However, as soon as the vehicle reaches a direction perpendicular to the desired one, the difference will be zero and 
+the corrective behavior will stop. Hence, the differential term alone will typically never really _reduce_ the error, it will 
+just prevent it from growing larger very fast (although it may keep getting larger and larger as the diff term is not 
+concerned with the `CTE` as such, just its change rate). This slowly growing `CTE` behavior of the differential 
+term can be again be seen on the video below (click for YouTube): 
+
+[![D Control](https://img.youtube.com/vi/peCkIgqx6V4/0.jpg)](https://www.youtube.com/watch?v=peCkIgqx6V4)
+
+The purpose of the differential term is really to counter the overshoot behavior of the proportional term: where the 
+proportional term would keep the car moving across the desired path, the differential term will 
+detect the decreasing CTE and adjust the steering in to the opposite direction. 
+
+However, in the case of systematic drift into one direction or the other, even the differential term will be 
+insufficient. In this project, there is no drift as such but the curves cause similar behavior: the proportional 
+and differential term are slow to react to the effects of a curve. 
+
+##### The Effect of the Integral Term
+
+The intergral term serves as kind of a memory effect: if the vehicle keeps being off into one or the other direction
+from the center of the track, the integral term will eventually pick this up and the steering will be adjusted 
+towards the center lane. However, the integral term alone is a very poor steering guide as can be seen in the video 
+below (click for YouTube):  
+[![D Control](https://img.youtube.com/vi/B8wNKa_xYM0/0.jpg)](https://www.youtube.com/watch?v=B8wNKa_xYM0)
+
+As is apparent, the integral term will overshoot the trajectory just like the proportional term, and even more so: 
+where the proportional term immediately changes sign after crossing the path, the integral will only slowly 
+manifest similar behavior, and will even keep turning into the wrong direction until finally the terms of opposite sign 
+will outgrow the previous integral value. 
+
+However, when combined to the proportional and differential term with suitably chosen weight parameters, 
+the integral term will serve as a tuning factor that increasingly accelerates corrective behavior when there is 
+long term drift, e.g. in longer curves. 
 
 #### Tuning the Weights
 
@@ -179,7 +226,61 @@ a full lap around the track, and no shorter period is used because the character
 vary greatly at its different parts and with shorted twiddle intervals, this would result in spurious 
 differenced in the total error integrals. 
 
+The typical (relevant) output lines from the beginning of a learning run look like this:
+
+```
+42["steer",{"steering_angle":0.0692990693866529,"throttle":0.4}]
+Total error: 929.866 best error: 1018.45
+Yes we were able to improve! Accelerating the changes for this parameter!
+starting new twiddle iteration (round 4), new param values: 
+Kp: 0.139469 Ki: 2.49661e-05 Kd: 4.3 dKp: 0.024 dKi: 6e-06 dKd: 0.36
+CTE: 0.2475 Speed: 41.4062 Steering Value: 0.231396
+--
+--
+42["steer",{"steering_angle":-0.78565514021861,"throttle":0.4}]
+Total error: 751.797 best error: 929.866
+Yes we were able to improve! Accelerating the changes for this parameter!
+starting new twiddle iteration (round 5), new param values: 
+Kp: 0.139469 Ki: 3.09661e-05 Kd: 4.3 dKp: 0.0288 dKi: 6e-06 dKd: 0.36
+CTE: 1.7204 Speed: 43.0471 Steering Value: -0.727705
+--
+--
+Total error: 792.439 best error: 751.797
+Not able to improve.
+That was the increase iteration so making a further attempt by decreasing the param value.
+starting new twiddle iteration (round 6), new param values: 
+Kp: 0.139469 Ki: 1.89661e-05 Kd: 4.3 dKp: 0.0288 dKi: 6e-06 dKd: 0.36
+CTE: 0.4051 Speed: 43.0268 Steering Value: 0.0167006
+```
+
+And finally, the output will just indicate that the algorithm has converged (as per the tolerance value): 
+
+```
+The twiddle algorithm has converged, the final values are: 
+Kp: 0.168278 Ki: 2.49661e-05 Kd: 4.66 dKp: 8.97229e-06 dKi: 9.96921e-10 dKd: 8.97229e-05
+```
+
+## Output
+
+Below (click image for YouTube) is a video of one full lap of the car driving around the track using the 
+twiddle-optimized parameters from above. The video was recorded on a smartphone because a screen recording on the same 
+computer had a negative effect on 
+steering performance. 
 
 ## Conclusion
+
+The PID implementation as such was not very complicated. However, to reason about a suitable set of parameters was 
+non-trivial and it took some time to find ones that kept the vehicle on track. 
+
+One could argue that an optimization algorithm could be used from the beginning to iteratively look for better and 
+better weights. However, the instrumentation of such a procedure would require either a lot of manual work or 
+a programmatic way to restart the simulator. I did not have the time to investigate these options so my twiddle had 
+to had a reasonable starting point so it was able to successfully drive around the track for longer periods, keeping
+track of the total error. 
+
+An interesting phenomenon is the fragility of the algorithm. For example, when trying to record a successful 
+round around the track using the twiddle-optimized parameters, the screen recording affected the driving 
+to an extent that the result was unusable. I resorted to using an external device to record the video. It would 
+be interesting to investigate the causes for this phenomenon, and possible mitigations. 
 
 
