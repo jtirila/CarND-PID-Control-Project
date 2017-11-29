@@ -267,6 +267,8 @@ twiddle-optimized parameters from above. The video was recorded on a smartphone 
 computer had a negative effect on 
 steering performance. 
 
+[![D Control](https://img.youtube.com/vi/tLUzWuMRqno/0.jpg)](https://www.youtube.com/watch?v=tLUzWuMRqno)
+
 ## Conclusion
 
 The PID implementation as such was not very complicated. However, to reason about a suitable set of parameters was 
